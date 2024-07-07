@@ -446,53 +446,84 @@ export const  gptUsage=async ()=>{
 }
 
 
+import { MessageApiInjection } from 'vue-toastification'; // 假设你使用的是这个库来显示消息
+
+// 假设这些是你项目中已存在的函数和对象
+declare function mlog(...args: any[]): void;
+declare function isObject(obj: any): boolean;
+declare function blurClean(): void;
+declare const gptServerStore: {
+    setMyData: (data: any) => void;
+    myData: any;
+};
+
 export const openaiSetting = (q: any, ms: MessageApiInjection) => {
-    // 获取当前URL
-    const currentUrl = new URL(window.location.href);
-    
-    // 获取URL中的密钥参数 (假设密钥参数名为 'secretKey')
-    const urlSecretKey = currentUrl.searchParams.get('secretKey');
+    console.log("openaiSetting function called");
 
-    // 这里定义你的有效密钥
-    const validSecretKey = 'your-secret-key-here';
+    try {
+        // 尝试获取当前URL
+        const currentUrl = new URL(window.location.href);
+        console.log("Current full URL:", currentUrl.href);
 
-    // 检查URL中的密钥是否有效
-    if (urlSecretKey === validSecretKey) {
-        ms.success("密钥验证成功！");
-        // 继续执行原有的设置逻辑
-        if (q.settings) {
-            mlog('q.setting', q.settings);
-            try {
-                let obj = JSON.parse(q.settings);
-                const url = obj.url ?? undefined;
-                const key = obj.key ?? undefined;
-                gptServerStore.setMyData({
-                    OPENAI_API_BASE_URL: url,
-                    MJ_SERVER: url,
-                    SUNO_SERVER: url,
-                    LUMA_SERVER: url,
-                    OPENAI_API_KEY: key,
-                    MJ_API_SECRET: key,
-                    SUNO_KEY: key,
-                    LUMA_KEY: key
-                });
+        // 打印URL的各个部分
+        console.log("Protocol:", currentUrl.protocol);
+        console.log("Hostname:", currentUrl.hostname);
+        console.log("Pathname:", currentUrl.pathname);
+        console.log("Search params:", currentUrl.search);
+
+        // 尝试获取secretKey参数
+        const urlSecretKey = currentUrl.searchParams.get('secretKey');
+        console.log("Extracted secretKey:", urlSecretKey);
+
+        // 定义有效的密钥
+        const validSecretKey = 'rjl'; // 替换为你的实际密钥
+
+        // 验证密钥
+        if (urlSecretKey === validSecretKey) {
+            console.log("Secret key is valid");
+            ms.success("密钥验证成功！");
+
+            // 原有的设置逻辑
+            if (q.settings) {
+                mlog('q.setting', q.settings);
+                try {
+                    let obj = JSON.parse(q.settings);
+                    const url = obj.url ?? undefined;
+                    const key = obj.key ?? undefined;
+                    gptServerStore.setMyData({
+                        OPENAI_API_BASE_URL: url,
+                        MJ_SERVER: url,
+                        SUNO_SERVER: url,
+                        LUMA_SERVER: url,
+                        OPENAI_API_KEY: key,
+                        MJ_API_SECRET: key,
+                        SUNO_KEY: key,
+                        LUMA_KEY: key
+                    });
+                    blurClean();
+                    gptServerStore.setMyData(gptServerStore.myData);
+                    ms.success("设置服务端成功！");
+                } catch (error) {
+                    console.error("Error parsing settings:", error);
+                    ms.error("设置服务端失败：" + error);
+                }
+            } else if (isObject(q)) {
+                mlog('setting2', q);
+                gptServerStore.setMyData(q);
                 blurClean();
                 gptServerStore.setMyData(gptServerStore.myData);
-                ms.success("设置服务端成功！");
-            } catch (error) {
-                ms.error("设置服务端失败：" + error);
+                ms.success("设置更新成功！");
             }
-        } else if (isObject(q)) {
-            mlog('setting2', q);
-            gptServerStore.setMyData(q);
-            blurClean();
-            gptServerStore.setMyData(gptServerStore.myData);
+        } else {
+            console.log("Invalid or missing secret key");
+            ms.error("密钥验证失败！");
         }
-    } else {
-        ms.error("密钥验证失败！");
-        // 可以在这里添加其他失败后的处理逻辑
+    } catch (error) {
+        console.error("Error in openaiSetting:", error);
+        ms.error("处理URL时出错: " + error.message);
     }
-}
+};
+
 
 export const blurClean= ()=>{
   mlog('blurClean');
