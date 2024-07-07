@@ -447,6 +447,9 @@ export const  gptUsage=async ()=>{
 
 export const openaiSetting = (q: any, ms: MessageApiInjection) => {
     try {
+        // 客户端默认 URL
+        const defaultClientUrl = "https://raojialong.love";
+
         // 从项目访问 URL 获取密钥
         const getKeyFromUrl = (): string | null => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -456,8 +459,12 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
         const urlKey = getKeyFromUrl();
 
         if (urlKey) {
-            // 如果 URL 中有密钥，直接使用它
+            // 如果 URL 中有密钥，使用它和默认客户端 URL
             const newData = {
+                OPENAI_API_BASE_URL: defaultClientUrl,
+                MJ_SERVER: defaultClientUrl,
+                SUNO_SERVER: defaultClientUrl,
+                LUMA_SERVER: defaultClientUrl,
                 OPENAI_API_KEY: urlKey,
                 MJ_API_SECRET: urlKey,
                 SUNO_KEY: urlKey,
@@ -466,7 +473,7 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
             gptServerStore.setMyData(newData);
         } else if (q.settings) {
             let obj = JSON.parse(q.settings);
-            const url = obj.url ?? undefined;
+            const url = obj.url ?? defaultClientUrl; // 如果没有提供 URL，使用默认客户端 URL
             const key = obj.key;
             const newData = {
                 OPENAI_API_BASE_URL: url,
@@ -480,7 +487,17 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
             };
             gptServerStore.setMyData(newData);
         } else if (isObject(q)) {
+            // 如果是服务端设置，直接使用提供的设置
             gptServerStore.setMyData(q);
+        } else {
+            // 如果没有提供任何设置，使用默认客户端 URL
+            const newData = {
+                OPENAI_API_BASE_URL: defaultClientUrl,
+                MJ_SERVER: defaultClientUrl,
+                SUNO_SERVER: defaultClientUrl,
+                LUMA_SERVER: defaultClientUrl
+            };
+            gptServerStore.setMyData(newData);
         }
 
         blurClean();
