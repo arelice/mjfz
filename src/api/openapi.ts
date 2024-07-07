@@ -446,36 +446,55 @@ export const  gptUsage=async ()=>{
 }
 
 export const openaiSetting = (q: any, ms: MessageApiInjection) => {
+    // 从 localStorage 获取存储的密钥
     const getStoredApiKeys = (): Record<string, string> => {
-        try {
-            const keys = localStorage.getItem('apiKeys');
-            return keys ? JSON.parse(keys) : {};
-        } catch (error) {
-            console.error('Error reading from localStorage:', error);
-            return {};
-        }
+        const keys = localStorage.getItem('apiKeys');
+        return keys ? JSON.parse(keys) : {};
     }
 
-    try {
-        const storedApiKeys = getStoredApiKeys();
+    const storedApiKeys = getStoredApiKeys();
 
-        if (q.settings) {
+    if (q.settings) {
+        try {
             let obj = JSON.parse(q.settings);
-            // ... (rest of your code)
-        }
-        else if (isObject(q)) {
-            // ... (rest of your code)
-        }
+            const url = obj.url ?? undefined;
+            // 优先使用传入的密钥，如果没有则使用存储的密钥
+            const key = obj.key || storedApiKeys.OPENAI_API_KEY;
+            const newData = {
+                OPENAI_API_BASE_URL: url,
+                MJ_SERVER: url,
+                SUNO_SERVER: url,
+                LUMA_SERVER: url,
+                OPENAI_API_KEY: key,
+                MJ_API_SECRET: key,
+                SUNO_KEY: key,
+                LUMA_KEY: key
+            };
+            gptServerStore.setMyData(newData);
 
-        // Move this outside of the conditions
+            blurClean();
+            gptServerStore.setMyData(gptServerStore.myData);
+            ms.success("设置成功！")
+
+        } catch (error) {
+            ms.error("设置失败：" + (error as Error).message);
+        }
+    }
+    else if (isObject(q)) {
+        const newData = {
+            ...q,
+            OPENAI_API_KEY: q.OPENAI_API_KEY || storedApiKeys.OPENAI_API_KEY,
+            MJ_API_SECRET: q.MJ_API_SECRET || storedApiKeys.MJ_API_SECRET,
+            SUNO_KEY: q.SUNO_KEY || storedApiKeys.SUNO_KEY,
+            LUMA_KEY: q.LUMA_KEY || storedApiKeys.LUMA_KEY
+        };
+        gptServerStore.setMyData(newData);
+
         blurClean();
         gptServerStore.setMyData(gptServerStore.myData);
-        ms.success("设置成功！");
-    } catch (error) {
-        console.error('Error in openaiSetting:', error);
-        ms.error("设置失败：" + (error as Error).message);
     }
 }
+
 
 
 export const blurClean= ()=>{
