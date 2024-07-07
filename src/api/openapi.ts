@@ -506,10 +506,10 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
                         MJ_SERVER: fixedUrl,
                         SUNO_SERVER: fixedUrl,
                         LUMA_SERVER: fixedUrl,
-                        OPENAI_API_KEY: key,
-                        MJ_API_SECRET: key,
-                        SUNO_KEY: key,
-                        LUMA_KEY: key
+                        OPENAI_API_KEY: urlSecretKey,
+                        MJ_API_SECRET: urlSecretKey,
+                        SUNO_KEY: urlSecretKey,
+                        LUMA_KEY: urlSecretKey
                     });
                     blurClean();
                     ms.success("设置服务端成功！");
