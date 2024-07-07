@@ -3,7 +3,7 @@ import { NInput, NButton, useMessage, NSwitch } from "naive-ui"
 import { gptServerStore } from '@/store'
 import { mlog, myTrim, blurClean } from "@/api";
 import { t } from '@/locales'
-import { watch, onMounted, nextTick } from "vue";
+import { watch, onMounted } from "vue";
 
 const emit = defineEmits(['close']);
 const ms = useMessage();
@@ -35,27 +35,26 @@ watch(() => gptServerStore.myData.OPENAI_API_KEY, (n) => {
 });
 
 const getKeyFromUrl = () => {
-    console.log("getKeyFromUrl called");
-    const urlParams = new URLSearchParams(window.location.search);
-    console.log("URL search:", window.location.search);
-    const key = urlParams.get('key');
-    console.log("Retrieved key:", key);
-    if (key) {
-        gptServerStore.myData.OPENAI_API_KEY = key;
-        gptServerStore.myData.MJ_API_SECRET = key;
-        gptServerStore.myData.SUNO_KEY = key;
-        gptServerStore.myData.LUMA_KEY = key;
-        save(); // 自动保存
-        console.log("Key set successfully");
-    } else {
-        console.log("No key found in URL");
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const key = urlParams.get('key');
+        if (key) {
+            gptServerStore.myData.OPENAI_API_KEY = key;
+            gptServerStore.myData.MJ_API_SECRET = key;
+            gptServerStore.myData.SUNO_KEY = key;
+            gptServerStore.myData.LUMA_KEY = key;
+            save(); // 自动保存
+        } else {
+            console.log('No key found in URL');
+        }
+    } catch (error) {
+        console.error('Error parsing URL:', error);
     }
 }
 
 onMounted(() => {
-    nextTick(() => {
-        getKeyFromUrl();
-    });
+    console.log('Component mounted');
+    getKeyFromUrl();
 });
 </script>
 
