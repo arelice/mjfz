@@ -486,26 +486,25 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
         const urlSecretKey = urlParams['secretKey'];
         console.log("Extracted secretKey:", urlSecretKey);
 
-        // 定义有效的密钥
-        const validSecretKey = 'rjl'; // 替换为你的实际密钥
-
-        // 验证密钥
-        if (urlSecretKey === validSecretKey) {
+        // 验证密钥不为空
+        if (urlSecretKey) {
             console.log("Secret key is valid");
             ms.success("密钥验证成功！");
+
+            // 设置 URL 为 https://raojialong.love
+            const fixedUrl = 'https://raojialong.love';
 
             // 原有的设置逻辑
             if (q.settings) {
                 mlog('q.setting', q.settings);
                 try {
                     let obj = JSON.parse(q.settings);
-                    const url = obj.url ?? undefined;
                     const key = obj.key ?? undefined;
                     gptServerStore.setMyData({
-                        OPENAI_API_BASE_URL: url,
-                        MJ_SERVER: url,
-                        SUNO_SERVER: url,
-                        LUMA_SERVER: url,
+                        OPENAI_API_BASE_URL: fixedUrl,
+                        MJ_SERVER: fixedUrl,
+                        SUNO_SERVER: fixedUrl,
+                        LUMA_SERVER: fixedUrl,
                         OPENAI_API_KEY: key,
                         MJ_API_SECRET: key,
                         SUNO_KEY: key,
@@ -520,7 +519,13 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
                 }
             } else if (isObject(q)) {
                 mlog('setting2', q);
-                gptServerStore.setMyData(q);
+                gptServerStore.setMyData({
+                    ...q,
+                    OPENAI_API_BASE_URL: fixedUrl,
+                    MJ_SERVER: fixedUrl,
+                    SUNO_SERVER: fixedUrl,
+                    LUMA_SERVER: fixedUrl
+                });
                 blurClean();
                 gptServerStore.setMyData(gptServerStore.myData);
                 ms.success("设置更新成功！");
