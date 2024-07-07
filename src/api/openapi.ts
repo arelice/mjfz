@@ -445,43 +445,77 @@ export const  gptUsage=async ()=>{
 
 }
 
-export const openaiSetting= ( q:any,ms:MessageApiInjection )=>{
-    //mlog()
-    mlog('setting', q )
-    if(q.settings){
-        mlog('q.setting', q.settings )
-        try {
-            let obj = JSON.parse( q.settings );
-            const url = obj.url ?? undefined;
-            const key = obj.key ?? undefined;
-            //let setQ= { }
-            gptServerStore.setMyData(  {
-                OPENAI_API_BASE_URL:url, 
-                MJ_SERVER:url, 
-                SUNO_SERVER:url,
-                LUMA_SERVER:url,
-                OPENAI_API_KEY:key,
-                MJ_API_SECRET:key, 
-                SUNO_KEY:key,
-                LUMA_KEY:key
-             } )
-            blurClean();
-            gptServerStore.setMyData( gptServerStore.myData );
-            ms.success("设置服务端成功！")
-            
-        } catch (error) {
-            
+export const openaiSetting = (q: any, ms: MessageApiInjection) => {
+// 从 localStorage 获取存储的密钥
+const getStoredApiKeys = (): Record<string, string> => {
+const keys = localStorage.getItem('apiKeys');
+return keys ? JSON.parse(keys) : {};
+}
+
+const storedApiKeys = getStoredApiKeys();
+
+mlog('setting', q)
+if (q.settings) {
+    mlog('q.setting', q.settings)
+    try {
+        let obj = JSON.parse(q.settings);
+        const url = obj.url ?? undefined;
+        // 优先使用传入的密钥，如果没有则使用存储的密钥
+        const key = obj.key || storedApiKeys.OPENAI_API_KEY;
+        const newData = {
+            OPENAI_API_BASE_URL: url,
+            MJ_SERVER: url,
+            SUNO_SERVER: url,
+            LUMA_SERVER: url,
+            OPENAI_API_KEY: key,
+            MJ_API_SECRET: key,
+            SUNO_KEY: key,
+            LUMA_KEY: key
+        };
+        gptServerStore.setMyData(newData);
+
+        // 如果传入了新的密钥，更新 localStorage
+        if (obj.key) {
+            localStorage.setItem('apiKeys', JSON.stringify({
+                OPENAI_API_KEY: key,
+                MJ_API_SECRET: key,
+                SUNO_KEY: key,
+                LUMA_KEY: key
+            }));
         }
-    }
-    else if(isObject(q)){
-        mlog('setting2', q )
-        gptServerStore.setMyData(  q )
-        //gptServerStore.setMyData( gptServerStore.myData );
+
         blurClean();
-        gptServerStore.setMyData( gptServerStore.myData );
+        gptServerStore.setMyData(gptServerStore.myData);
+        ms.success("设置服务端成功！")
 
+    } catch (error) {
+        ms.error("设置服务端失败：" + (error as Error).message);
     }
+}
+else if (isObject(q)) {
+    mlog('setting2', q)
+    // 使用传入的设置，如果某个值不存在，则使用存储的密钥
+    const newData = {
+        ...q,
+        OPENAI_API_KEY: q.OPENAI_API_KEY || storedApiKeys.OPENAI_API_KEY,
+        MJ_API_SECRET: q.MJ_API_SECRET || storedApiKeys.MJ_API_SECRET,
+        SUNO_KEY: q.SUNO_KEY || storedApiKeys.SUNO_KEY,
+        LUMA_KEY: q.LUMA_KEY || storedApiKeys.LUMA_KEY
+    };
+    gptServerStore.setMyData(newData);
 
+    // 更新 localStorage
+    localStorage.setItem('apiKeys', JSON.stringify({
+        OPENAI_API_KEY: newData.OPENAI_API_KEY,
+        MJ_API_SECRET: newData.MJ_API_SECRET,
+        SUNO_KEY: newData.SUNO_KEY,
+        LUMA_KEY: newData.LUMA_KEY
+    }));
+
+    blurClean();
+    gptServerStore.setMyData(gptServerStore.myData);
+}
+解释
 }
 
 export const blurClean= ()=>{
