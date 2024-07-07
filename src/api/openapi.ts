@@ -457,6 +457,7 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
         return urlParams.get('key');
     }
 
+    // 尝试从 URL 获取密钥
     const urlKey = getKeyFromUrl();
 
     if (urlKey) {
@@ -475,7 +476,10 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
         blurClean();
         gptServerStore.setMyData(gptServerStore.myData);
         ms.success("从 URL 设置密钥成功！")
-    } else if (q.settings) {
+        return; // 确保在设置 URL 密钥后不继续执行
+    }
+
+    if (q.settings) {
         mlog('q.setting', q.settings)
         try {
             let obj = JSON.parse(q.settings);
@@ -527,6 +531,7 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
         ms.success("使用默认设置成功！")
     }
 }
+
 
 
 
