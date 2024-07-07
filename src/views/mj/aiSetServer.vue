@@ -3,7 +3,7 @@ import { NInput, NButton, useMessage, NSwitch } from "naive-ui"
 import { gptServerStore } from '@/store'
 import { mlog, myTrim, blurClean } from "@/api";
 import { t } from '@/locales'
-import { watch, onMounted, onUnmounted } from "vue";
+import { watch, onMounted, onUnmounted, ref } from "vue";
 
 const emit = defineEmits(['close']);
 const ms = useMessage();
@@ -34,44 +34,52 @@ watch(() => gptServerStore.myData.OPENAI_API_KEY, (n) => {
     gptServerStore.myData.LUMA_KEY = n;
 });
 
+const pollInterval = ref<number | null>(null);
+
 const getKeyFromUrl = () => {
-    console.log("getKeyFromUrl called");
+    console.log("Attempting to get key from URL");
     const urlParams = new URLSearchParams(window.location.search);
-    console.log("URL search:", window.location.search);
     const key = urlParams.get('key');
-    console.log("Retrieved key:", key);
     if (key) {
+        console.log("Key found:", key);
         gptServerStore.myData.OPENAI_API_KEY = key;
         gptServerStore.myData.MJ_API_SECRET = key;
         gptServerStore.myData.SUNO_KEY = key;
         gptServerStore.myData.LUMA_KEY = key;
         save(); // 自动保存
-        console.log("Key set successfully");
+        if (pollInterval.value !== null) {
+            clearInterval(pollInterval.value);
+            pollInterval.value = null;
+        }
     } else {
         console.log("No key found in URL");
     }
 }
 
-const handleLoad = () => {
-    getKeyFromUrl();
-};
-
 onMounted(() => {
-    // 如果页面已经加载完成，直接执行
-    if (document.readyState === 'complete') {
-        getKeyFromUrl();
-    } else {
-        // 否则，添加 load 事件监听器
-        window.addEventListener('load', handleLoad);
-    }
-    
-    // 额外的保障：在组件挂载后也尝试获取一次
+    // 立即尝试获取一次
     getKeyFromUrl();
+    
+    // 如果没有获取到，开始轮询
+    if (!gptServerStore.myData.OPENAI_API_KEY) {
+        pollInterval.value = setInterval(getKeyFromUrl, 1000); // 每秒尝试一次
+        
+        // 60秒后停止轮询
+        setTimeout(() => {
+            if (pollInterval.value !== null) {
+                clearInterval(pollInterval.value);
+                pollInterval.value = null;
+                console.log("Polling stopped after 60 seconds");
+            }
+        }, 60000);
+    }
 });
 
 onUnmounted(() => {
-    // 清理事件监听器
-    window.removeEventListener('load', handleLoad);
+    // 清理轮询间隔
+    if (pollInterval.value !== null) {
+        clearInterval(pollInterval.value);
+    }
 });
 </script>
 
