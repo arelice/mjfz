@@ -446,48 +446,28 @@ export const  gptUsage=async ()=>{
 }
 
 export const openaiSetting = (q: any, ms: MessageApiInjection) => {
-    // 从 localStorage 获取存储的密钥
-    const getStoredApiKeys = (): Record<string, string> => {
-        const keys = localStorage.getItem('apiKeys');
-        return keys ? JSON.parse(keys) : {};
-    }
-
-    // 存储 API 密钥到 localStorage
-    const storeApiKeys = (keys: Record<string, string>) => {
-        localStorage.setItem('apiKeys', JSON.stringify(keys));
-    }
-
-    // 从 URL 获取密钥
-    const getKeyFromUrl = (): string | null => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const key = urlParams.get('key');
-        if (key) {
-            // 从 URL 中移除 key 参数
-            window.history.replaceState({}, document.title, window.location.pathname);
+    try {
+        // 从项目访问 URL 获取密钥
+        const getKeyFromUrl = (): string | null => {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('key');
         }
-        return key;
-    }
 
-    // 尝试从 URL 获取密钥
-    const urlKey = getKeyFromUrl();
-    if (urlKey) {
-        // 如果 URL 中有密钥，存储它
-        storeApiKeys({
-            OPENAI_API_KEY: urlKey,
-            MJ_API_SECRET: urlKey,
-            SUNO_KEY: urlKey,
-            LUMA_KEY: urlKey
-        });
-    }
+        const urlKey = getKeyFromUrl();
 
-    const storedApiKeys = getStoredApiKeys();
-
-    if (q.settings) {
-        try {
+        if (urlKey) {
+            // 如果 URL 中有密钥，直接使用它
+            const newData = {
+                OPENAI_API_KEY: urlKey,
+                MJ_API_SECRET: urlKey,
+                SUNO_KEY: urlKey,
+                LUMA_KEY: urlKey
+            };
+            gptServerStore.setMyData(newData);
+        } else if (q.settings) {
             let obj = JSON.parse(q.settings);
             const url = obj.url ?? undefined;
-            // 优先使用传入的密钥，如果没有则使用存储的密钥或 URL 中的密钥
-            const key = obj.key || urlKey || storedApiKeys.OPENAI_API_KEY;
+            const key = obj.key;
             const newData = {
                 OPENAI_API_BASE_URL: url,
                 MJ_SERVER: url,
@@ -499,43 +479,16 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
                 LUMA_KEY: key
             };
             gptServerStore.setMyData(newData);
-
-            // 更新存储的密钥
-            storeApiKeys({
-                OPENAI_API_KEY: key,
-                MJ_API_SECRET: key,
-                SUNO_KEY: key,
-                LUMA_KEY: key
-            });
-
-            blurClean();
-            gptServerStore.setMyData(gptServerStore.myData);
-            ms.success("设置成功！")
-
-        } catch (error) {
-            ms.error("设置失败：" + (error as Error).message);
+        } else if (isObject(q)) {
+            gptServerStore.setMyData(q);
         }
-    }
-    else if (isObject(q)) {
-        const newData = {
-            ...q,
-            OPENAI_API_KEY: q.OPENAI_API_KEY || urlKey || storedApiKeys.OPENAI_API_KEY,
-            MJ_API_SECRET: q.MJ_API_SECRET || urlKey || storedApiKeys.MJ_API_SECRET,
-            SUNO_KEY: q.SUNO_KEY || urlKey || storedApiKeys.SUNO_KEY,
-            LUMA_KEY: q.LUMA_KEY || urlKey || storedApiKeys.LUMA_KEY
-        };
-        gptServerStore.setMyData(newData);
-
-        // 更新存储的密钥
-        storeApiKeys({
-            OPENAI_API_KEY: newData.OPENAI_API_KEY,
-            MJ_API_SECRET: newData.MJ_API_SECRET,
-            SUNO_KEY: newData.SUNO_KEY,
-            LUMA_KEY: newData.LUMA_KEY
-        });
 
         blurClean();
         gptServerStore.setMyData(gptServerStore.myData);
+        ms.success("设置成功！")
+    } catch (error) {
+        console.error("设置过程中发生错误:", error);
+        ms.error("设置失败：" + (error as Error).message);
     }
 }
 
