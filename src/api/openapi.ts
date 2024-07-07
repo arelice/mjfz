@@ -461,8 +461,8 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
     console.log("openaiSetting function called");
 
     try {
-        // 尝试获取当前URL
-        const currentUrl = new URL(window.location.href);
+        // 使用 window.location 直接获取
+        const currentUrl = window.location;
         console.log("Current full URL:", currentUrl.href);
 
         // 打印URL的各个部分
@@ -471,8 +471,9 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
         console.log("Pathname:", currentUrl.pathname);
         console.log("Search params:", currentUrl.search);
 
-        // 尝试获取secretKey参数
-        const urlSecretKey = currentUrl.searchParams.get('secretKey');
+        // 使用 URLSearchParams 来获取 secretKey
+        const urlParams = new URLSearchParams(currentUrl.search);
+        const urlSecretKey = urlParams.get('secretKey');
         console.log("Extracted secretKey:", urlSecretKey);
 
         // 定义有效的密钥
@@ -523,6 +524,7 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
         ms.error("处理URL时出错: " + error.message);
     }
 };
+
 
 
 export const blurClean= ()=>{
