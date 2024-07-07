@@ -457,24 +457,19 @@ declare const gptServerStore: {
     myData: any;
 };
 
-// 手动解析 URL 参数的函数
-function getUrlParameter(name: string): string {
-    name = name.replace(/[$$]/, '\$$').replace(/[$$]/, '\$$');
-    const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-    const results = regex.exec(location.search);
-    return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-}
-
 export const openaiSetting = (q: any, ms: MessageApiInjection) => {
     console.log("openaiSetting function called");
 
     try {
-        // 手动获取完整 URL
-        const fullUrl = window.location.href;
+        // 使用 document.location.href 获取完整 URL
+        const fullUrl = document.location.href;
         console.log("Full URL:", fullUrl);
 
-        // 使用手动解析方法获取 secretKey
-        const urlSecretKey = getUrlParameter('secretKey');
+        // 手动解析 URL 以获取 secretKey
+        let urlSecretKey = '';
+        if (fullUrl.includes('secretKey=')) {
+            urlSecretKey = fullUrl.split('secretKey=')[1]?.split('&')[0] || '';
+        }
         console.log("Extracted secretKey:", urlSecretKey);
 
         // 定义有效的密钥
