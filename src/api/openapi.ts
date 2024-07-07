@@ -446,7 +446,7 @@ export const  gptUsage=async ()=>{
 }
 
 
-import { MessageApiInjection } from 'vue-toastification'; // 假设你使用的是这个库来显示消息
+import { MessageApiInjection } from 'vue-toastification';
 
 // 假设这些是你项目中已存在的函数和对象
 declare function mlog(...args: any[]): void;
@@ -457,23 +457,24 @@ declare const gptServerStore: {
     myData: any;
 };
 
+// 手动解析 URL 参数的函数
+function getUrlParameter(name: string): string {
+    name = name.replace(/[$$]/, '\$$').replace(/[$$]/, '\$$');
+    const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+    const results = regex.exec(location.search);
+    return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+}
+
 export const openaiSetting = (q: any, ms: MessageApiInjection) => {
     console.log("openaiSetting function called");
 
     try {
-        // 使用 window.location 直接获取
-        const currentUrl = window.location;
-        console.log("Current full URL:", currentUrl.href);
+        // 手动获取完整 URL
+        const fullUrl = window.location.href;
+        console.log("Full URL:", fullUrl);
 
-        // 打印URL的各个部分
-        console.log("Protocol:", currentUrl.protocol);
-        console.log("Hostname:", currentUrl.hostname);
-        console.log("Pathname:", currentUrl.pathname);
-        console.log("Search params:", currentUrl.search);
-
-        // 使用 URLSearchParams 来获取 secretKey
-        const urlParams = new URLSearchParams(currentUrl.search);
-        const urlSecretKey = urlParams.get('secretKey');
+        // 使用手动解析方法获取 secretKey
+        const urlSecretKey = getUrlParameter('secretKey');
         console.log("Extracted secretKey:", urlSecretKey);
 
         // 定义有效的密钥
@@ -506,7 +507,7 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
                     ms.success("设置服务端成功！");
                 } catch (error) {
                     console.error("Error parsing settings:", error);
-                    ms.error("设置服务端失败：" + error);
+                    ms.error("设置服务端失败：" + (error as Error).message);
                 }
             } else if (isObject(q)) {
                 mlog('setting2', q);
@@ -521,7 +522,7 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
         }
     } catch (error) {
         console.error("Error in openaiSetting:", error);
-        ms.error("处理URL时出错: " + error.message);
+        ms.error("处理URL时出错: " + (error as Error).message);
     }
 };
 
