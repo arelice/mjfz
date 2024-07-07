@@ -532,6 +532,7 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
 
 
 
+
 export const blurClean= ()=>{
   mlog('blurClean');
   gptServerStore.myData.OPENAI_API_BASE_URL =myTrim( myTrim(gptServerStore.myData.OPENAI_API_BASE_URL.trim(),'/'), '\\' );
