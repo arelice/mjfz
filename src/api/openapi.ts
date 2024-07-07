@@ -468,7 +468,7 @@ export const openaiSetting = (ms: MessageApiInjection) => {
             LUMA_KEY: key
         };
         gptServerStore.setMyData(newData);
-        blurClean();
+        blurClean(); // 假设 blurClean 是一个全局可用的函数
         gptServerStore.setMyData(gptServerStore.myData);
         ms.success("从 URL 设置密钥成功！");
     }
@@ -483,7 +483,7 @@ export const openaiSetting = (ms: MessageApiInjection) => {
             // 不设置任何密钥
         };
         gptServerStore.setMyData(newData);
-        blurClean();
+        blurClean(); // 假设 blurClean 是一个全局可用的函数
         gptServerStore.setMyData(gptServerStore.myData);
         ms.info("未提供密钥，使用默认配置。某些功能可能受限。");
     }
@@ -504,27 +504,25 @@ export const openaiSetting = (ms: MessageApiInjection) => {
     trySetKey();
 }
 
-// 以下是可能需要的辅助函数和类型，请根据您的项目实际情况进行调整或实现
+// 注意：不要在这里重新声明 blurClean 函数
+
+// 以下接口和类型定义应该放在适当的位置，可能是另一个文件中
 interface MessageApiInjection {
     success: (message: string) => void;
     error: (message: string) => void;
     info: (message: string) => void;
 }
 
-const gptServerStore = {
-    setMyData: (data: any) => {
-        // 实现存储数据的逻辑
-        console.log("Setting data:", data);
-    },
-    myData: {} // 假设这里存储了当前的数据
+// gptServerStore 应该是在其他地方定义的全局对象
+declare const gptServerStore: {
+    setMyData: (data: any) => void;
+    myData: any;
 };
 
-const blurClean = () => {
-    // 实现清理逻辑
-    console.log("Cleaning up...");
-};
+// blurClean 应该是在其他地方定义的全局函数
+declare function blurClean(): void;
 
-// 使用示例
+// 使用示例（这部分可能需要移到适当的位置）
 const ms: MessageApiInjection = {
     success: (message: string) => console.log("Success:", message),
     error: (message: string) => console.error("Error:", message),
@@ -533,6 +531,7 @@ const ms: MessageApiInjection = {
 
 // 调用函数
 openaiSetting(ms);
+
 
 
 
