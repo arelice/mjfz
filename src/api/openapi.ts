@@ -499,7 +499,7 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
                 mlog('q.setting', q.settings);
                 try {
                     let obj = JSON.parse(q.settings);
-                    const key = obj.key ?? undefined;
+                    const key = obj.key ?? urlSecretKey;
                     console.log("Extracted key from q.settings:", key); // 添加日志
                     gptServerStore.setMyData({
                         OPENAI_API_BASE_URL: fixedUrl,
@@ -519,7 +519,7 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
                 }
             } else if (isObject(q)) {
                 mlog('setting2', q);
-                const key = q.key ?? undefined;
+                const key = q.key ?? urlSecretKey;
                 console.log("Extracted key from q:", key); // 添加日志
                 gptServerStore.setMyData({
                     ...q,
