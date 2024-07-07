@@ -457,19 +457,33 @@ declare const gptServerStore: {
     myData: any;
 };
 
+// 自定义函数来解析 URL 参数
+function parseUrlParams(search: string): { [key: string]: string } {
+    const params: { [key: string]: string } = {};
+    const searchParams = search.substring(1).split('&');
+    for (const param of searchParams) {
+        const [key, value] = param.split('=');
+        if (key && value) {
+            params[decodeURIComponent(key)] = decodeURIComponent(value);
+        }
+    }
+    return params;
+}
+
 export const openaiSetting = (q: any, ms: MessageApiInjection) => {
     console.log("openaiSetting function called");
 
     try {
-        // 使用 document.location.href 获取完整 URL
-        const fullUrl = document.location.href;
-        console.log("Full URL:", fullUrl);
+        // 获取 URL 的查询字符串部分
+        const searchString = window.location.search;
+        console.log("Search string:", searchString);
 
-        // 手动解析 URL 以获取 secretKey
-        let urlSecretKey = '';
-        if (fullUrl.includes('secretKey=')) {
-            urlSecretKey = fullUrl.split('secretKey=')[1]?.split('&')[0] || '';
-        }
+        // 解析 URL 参数
+        const urlParams = parseUrlParams(searchString);
+        console.log("Parsed URL parameters:", urlParams);
+
+        // 获取 secretKey
+        const urlSecretKey = urlParams['secretKey'];
         console.log("Extracted secretKey:", urlSecretKey);
 
         // 定义有效的密钥
@@ -520,6 +534,7 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
         ms.error("处理URL时出错: " + (error as Error).message);
     }
 };
+
 
 
 
