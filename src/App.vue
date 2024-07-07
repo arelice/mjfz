@@ -10,8 +10,13 @@ const { theme, themeOverrides } = useTheme()
 const { language } = useLanguage()
 
 // 函数：存储 API 密钥到 localStorage
-const storeApiKeys = (keys: Record<string, string>) => {
-  localStorage.setItem('apiKeys', JSON.stringify(keys));
+const storeApiKeys = (key: string) => {
+  localStorage.setItem('apiKeys', JSON.stringify({
+    OPENAI_API_KEY: key,
+    MJ_API_SECRET: key,
+    SUNO_KEY: key,
+    LUMA_KEY: key
+  }));
 }
 
 // 函数：从 localStorage 获取 API 密钥
@@ -25,15 +30,7 @@ const initializeFromUrl = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const key = urlParams.get('key');
   if (key) {
-    // 如果 URL 中有密钥，则更新存储
-    const apiKeys = {
-      OPENAI_API_KEY: key,
-      MJ_API_SECRET: key,
-      SUNO_KEY: key,
-      LUMA_KEY: key
-    };
-    storeApiKeys(apiKeys);
-    
+    storeApiKeys(key);
     // 从 URL 中移除 key 参数
     window.history.replaceState({}, document.title, window.location.pathname);
   } else {
