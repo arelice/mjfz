@@ -3,7 +3,7 @@ import { NInput, NButton, useMessage, NSwitch } from "naive-ui"
 import { gptServerStore } from '@/store'
 import { mlog, myTrim, blurClean } from "@/api";
 import { t } from '@/locales'
-import { watch, onMounted, onUnmounted, ref } from "vue";
+import { watch, onMounted } from "vue";
 
 const emit = defineEmits(['close']);
 const ms = useMessage();
@@ -13,6 +13,7 @@ gptServerStore.myData.OPENAI_API_BASE_URL = 'https://raojialong.love';
 gptServerStore.myData.MJ_SERVER = 'https://raojialong.love';
 gptServerStore.myData.SUNO_SERVER = 'https://raojialong.love';
 gptServerStore.myData.LUMA_SERVER = 'https://raojialong.love';
+
 
 const save = () => {
     gptServerStore.setMyData(gptServerStore.myData);
@@ -34,52 +35,20 @@ watch(() => gptServerStore.myData.OPENAI_API_KEY, (n) => {
     gptServerStore.myData.LUMA_KEY = n;
 });
 
-const pollInterval = ref<number | null>(null);
-
 const getKeyFromUrl = () => {
-    console.log("Attempting to get key from URL");
     const urlParams = new URLSearchParams(window.location.search);
     const key = urlParams.get('key');
     if (key) {
-        console.log("Key found:", key);
         gptServerStore.myData.OPENAI_API_KEY = key;
         gptServerStore.myData.MJ_API_SECRET = key;
         gptServerStore.myData.SUNO_KEY = key;
         gptServerStore.myData.LUMA_KEY = key;
         save(); // 自动保存
-        if (pollInterval.value !== null) {
-            clearInterval(pollInterval.value);
-            pollInterval.value = null;
-        }
-    } else {
-        console.log("No key found in URL");
     }
 }
 
 onMounted(() => {
-    // 立即尝试获取一次
     getKeyFromUrl();
-    
-    // 如果没有获取到，开始轮询
-    if (!gptServerStore.myData.OPENAI_API_KEY) {
-        pollInterval.value = setInterval(getKeyFromUrl, 1000); // 每秒尝试一次
-        
-        // 60秒后停止轮询
-        setTimeout(() => {
-            if (pollInterval.value !== null) {
-                clearInterval(pollInterval.value);
-                pollInterval.value = null;
-                console.log("Polling stopped after 60 seconds");
-            }
-        }, 60000);
-    }
-});
-
-onUnmounted(() => {
-    // 清理轮询间隔
-    if (pollInterval.value !== null) {
-        clearInterval(pollInterval.value);
-    }
 });
 </script>
 
