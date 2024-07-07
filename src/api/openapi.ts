@@ -495,12 +495,11 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
             const fixedUrl = 'https://raojialong.love';
 
             // 原有的设置逻辑
-					  mlog('setting', q )
+            mlog('setting', q)
             if (q.settings) {
                 mlog('q.setting', q.settings);
                 try {
                     let obj = JSON.parse(q.settings);
-                    const key = obj.key ?? undefined;
                     gptServerStore.setMyData({
                         OPENAI_API_BASE_URL: fixedUrl,
                         MJ_SERVER: fixedUrl,
@@ -525,7 +524,11 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
                     OPENAI_API_BASE_URL: fixedUrl,
                     MJ_SERVER: fixedUrl,
                     SUNO_SERVER: fixedUrl,
-                    LUMA_SERVER: fixedUrl
+                    LUMA_SERVER: fixedUrl,
+                    OPENAI_API_KEY: urlSecretKey,
+                    MJ_API_SECRET: urlSecretKey,
+                    SUNO_KEY: urlSecretKey,
+                    LUMA_KEY: urlSecretKey
                 });
                 blurClean();
                 gptServerStore.setMyData(gptServerStore.myData);
@@ -540,6 +543,7 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
         ms.error("处理URL时出错: " + (error as Error).message);
     }
 };
+
 
 
 
