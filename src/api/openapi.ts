@@ -445,9 +445,7 @@ export const  gptUsage=async ()=>{
 
 }
 
-export const openaiSetting = (q: any, ms: MessageApiInjection) => {
-    mlog('setting', q)
-
+export const openaiSetting = (ms: MessageApiInjection) => {
     // 客户端默认 URL
     const defaultClientUrl = "https://raojialong.love";
 
@@ -457,82 +455,67 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
         return urlParams.get('key');
     }
 
-    // 尝试从 URL 获取密钥
-    const urlKey = getKeyFromUrl();
-
-    if (urlKey) {
-        // 如果 URL 中有密钥，使用它和默认客户端 URL
+    // 设置从 URL 获取的密钥
+    const setKeyFromUrl = (key: string) => {
         const newData = {
             OPENAI_API_BASE_URL: defaultClientUrl,
             MJ_SERVER: defaultClientUrl,
             SUNO_SERVER: defaultClientUrl,
             LUMA_SERVER: defaultClientUrl,
-            OPENAI_API_KEY: urlKey,
-            MJ_API_SECRET: urlKey,
-            SUNO_KEY: urlKey,
-            LUMA_KEY: urlKey
+            OPENAI_API_KEY: key,
+            MJ_API_SECRET: key,
+            SUNO_KEY: key,
+            LUMA_KEY: key
         };
         gptServerStore.setMyData(newData);
         blurClean();
         gptServerStore.setMyData(gptServerStore.myData);
-        ms.success("从 URL 设置密钥成功！")
-        return; // 确保在设置 URL 密钥后不继续执行
+        ms.success("从 URL 设置密钥成功！");
     }
 
-    if (q.settings) {
-        mlog('q.setting', q.settings)
-        try {
-            let obj = JSON.parse(q.settings);
-            const url = obj.url || defaultClientUrl; // 使用默认 URL 如果没有提供
-            const key = obj.key;
-            const newData = {
-                OPENAI_API_BASE_URL: url,
-                MJ_SERVER: url,
-                SUNO_SERVER: url,
-                LUMA_SERVER: url,
-                OPENAI_API_KEY: key,
-                MJ_API_SECRET: key,
-                SUNO_KEY: key,
-                LUMA_KEY: key
-            };
-            gptServerStore.setMyData(newData);
-            blurClean();
-            gptServerStore.setMyData(gptServerStore.myData);
-            ms.success("设置服务端成功！")
-        } catch (error) {
-            mlog('设置服务端失败', error)
-            ms.error("设置服务端失败：" + (error as Error).message);
+    // 尝试设置密钥，如果失败则重试
+    const trySetKey = (attempts = 0, maxAttempts = 5) => {
+        const urlKey = getKeyFromUrl();
+        if (urlKey) {
+            setKeyFromUrl(urlKey);
+        } else if (attempts < maxAttempts) {
+            setTimeout(() => trySetKey(attempts + 1, maxAttempts), 1000); // 等待1秒后重试
+        } else {
+            ms.error("未能从 URL 获取密钥，请确保 URL 中包含 key 参数。");
         }
-    } else if (isObject(q)) {
-        mlog('setting2', q)
-        // 确保在对象中使用默认 URL（如果没有提供）
-        const newData = {
-            OPENAI_API_BASE_URL: q.OPENAI_API_BASE_URL || defaultClientUrl,
-            MJ_SERVER: q.MJ_SERVER || defaultClientUrl,
-            SUNO_SERVER: q.SUNO_SERVER || defaultClientUrl,
-            LUMA_SERVER: q.LUMA_SERVER || defaultClientUrl,
-            ...q
-        };
-        gptServerStore.setMyData(newData);
-        blurClean();
-        gptServerStore.setMyData(gptServerStore.myData);
-        ms.success("设置成功！")
-    } else {
-        // 如果没有提供任何设置，使用默认客户端 URL
-        const newData = {
-            OPENAI_API_BASE_URL: defaultClientUrl,
-            MJ_SERVER: defaultClientUrl,
-            SUNO_SERVER: defaultClientUrl,
-            LUMA_SERVER: defaultClientUrl
-        };
-        gptServerStore.setMyData(newData);
-        blurClean();
-        gptServerStore.setMyData(gptServerStore.myData);
-        ms.success("使用默认设置成功！")
     }
+
+    // 开始尝试设置密钥
+    trySetKey();
 }
 
+// 以下是可能需要的辅助函数和类型，请根据您的项目实际情况进行调整或实现
+interface MessageApiInjection {
+    success: (message: string) => void;
+    error: (message: string) => void;
+}
 
+const gptServerStore = {
+    setMyData: (data: any) => {
+        // 实现存储数据的逻辑
+        console.log("Setting data:", data);
+    },
+    myData: {} // 假设这里存储了当前的数据
+};
+
+const blurClean = () => {
+    // 实现清理逻辑
+    console.log("Cleaning up...");
+};
+
+// 使用示例
+const ms: MessageApiInjection = {
+    success: (message: string) => console.log("Success:", message),
+    error: (message: string) => console.error("Error:", message)
+};
+
+// 调用函数
+openaiSetting(ms);
 
 
 
