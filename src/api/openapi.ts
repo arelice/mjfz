@@ -473,7 +473,22 @@ export const openaiSetting = (ms: MessageApiInjection) => {
         ms.success("从 URL 设置密钥成功！");
     }
 
-    // 尝试设置密钥，如果失败则重试
+    // 设置默认配置
+    const setDefaultConfig = () => {
+        const newData = {
+            OPENAI_API_BASE_URL: defaultClientUrl,
+            MJ_SERVER: defaultClientUrl,
+            SUNO_SERVER: defaultClientUrl,
+            LUMA_SERVER: defaultClientUrl,
+            // 不设置任何密钥
+        };
+        gptServerStore.setMyData(newData);
+        blurClean();
+        gptServerStore.setMyData(gptServerStore.myData);
+        ms.info("未提供密钥，使用默认配置。某些功能可能受限。");
+    }
+
+    // 尝试设置密钥，如果失败则使用默认配置
     const trySetKey = (attempts = 0, maxAttempts = 5) => {
         const urlKey = getKeyFromUrl();
         if (urlKey) {
@@ -481,7 +496,7 @@ export const openaiSetting = (ms: MessageApiInjection) => {
         } else if (attempts < maxAttempts) {
             setTimeout(() => trySetKey(attempts + 1, maxAttempts), 1000); // 等待1秒后重试
         } else {
-            ms.error("未能从 URL 获取密钥，请确保 URL 中包含 key 参数。");
+            setDefaultConfig();
         }
     }
 
@@ -493,6 +508,7 @@ export const openaiSetting = (ms: MessageApiInjection) => {
 interface MessageApiInjection {
     success: (message: string) => void;
     error: (message: string) => void;
+    info: (message: string) => void;
 }
 
 const gptServerStore = {
@@ -511,11 +527,13 @@ const blurClean = () => {
 // 使用示例
 const ms: MessageApiInjection = {
     success: (message: string) => console.log("Success:", message),
-    error: (message: string) => console.error("Error:", message)
+    error: (message: string) => console.error("Error:", message),
+    info: (message: string) => console.info("Info:", message)
 };
 
 // 调用函数
 openaiSetting(ms);
+
 
 
 
