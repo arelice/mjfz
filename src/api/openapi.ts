@@ -448,6 +448,9 @@ export const  gptUsage=async ()=>{
 export const openaiSetting = (q: any, ms: MessageApiInjection) => {
     mlog('setting', q)
 
+    // 客户端默认 URL
+    const defaultClientUrl = "https://raojialong.love";
+
     // 从项目访问 URL 获取密钥
     const getKeyFromUrl = (): string | null => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -455,7 +458,6 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
     }
 
     const urlKey = getKeyFromUrl();
-    const defaultClientUrl = "https://raojialong.love";
 
     if (urlKey) {
         // 如果 URL 中有密钥，使用它和默认客户端 URL
@@ -472,14 +474,14 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
         gptServerStore.setMyData(newData);
         blurClean();
         gptServerStore.setMyData(gptServerStore.myData);
-        ms.success("从 URL 设置密钥成功！");
+        ms.success("从 URL 设置密钥成功！")
     } else if (q.settings) {
         mlog('q.setting', q.settings)
         try {
             let obj = JSON.parse(q.settings);
-            const url = obj.url ?? defaultClientUrl;
+            const url = obj.url || defaultClientUrl; // 使用默认 URL 如果没有提供
             const key = obj.key;
-            gptServerStore.setMyData({
+            const newData = {
                 OPENAI_API_BASE_URL: url,
                 MJ_SERVER: url,
                 SUNO_SERVER: url,
@@ -488,7 +490,8 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
                 MJ_API_SECRET: key,
                 SUNO_KEY: key,
                 LUMA_KEY: key
-            })
+            };
+            gptServerStore.setMyData(newData);
             blurClean();
             gptServerStore.setMyData(gptServerStore.myData);
             ms.success("设置服务端成功！")
@@ -498,10 +501,30 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
         }
     } else if (isObject(q)) {
         mlog('setting2', q)
-        gptServerStore.setMyData(q)
+        // 确保在对象中使用默认 URL（如果没有提供）
+        const newData = {
+            OPENAI_API_BASE_URL: q.OPENAI_API_BASE_URL || defaultClientUrl,
+            MJ_SERVER: q.MJ_SERVER || defaultClientUrl,
+            SUNO_SERVER: q.SUNO_SERVER || defaultClientUrl,
+            LUMA_SERVER: q.LUMA_SERVER || defaultClientUrl,
+            ...q
+        };
+        gptServerStore.setMyData(newData);
         blurClean();
         gptServerStore.setMyData(gptServerStore.myData);
         ms.success("设置成功！")
+    } else {
+        // 如果没有提供任何设置，使用默认客户端 URL
+        const newData = {
+            OPENAI_API_BASE_URL: defaultClientUrl,
+            MJ_SERVER: defaultClientUrl,
+            SUNO_SERVER: defaultClientUrl,
+            LUMA_SERVER: defaultClientUrl
+        };
+        gptServerStore.setMyData(newData);
+        blurClean();
+        gptServerStore.setMyData(gptServerStore.myData);
+        ms.success("使用默认设置成功！")
     }
 }
 
