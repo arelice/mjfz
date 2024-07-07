@@ -495,23 +495,24 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
             const fixedUrl = 'https://raojialong.love';
 
             // 原有的设置逻辑
+					  mlog('setting', q )
             if (q.settings) {
                 mlog('q.setting', q.settings);
                 try {
                     let obj = JSON.parse(q.settings);
-                    const key = obj.key ?? urlSecretKey;
-                    console.log("Extracted key from q.settings:", key); // 添加日志
+                    const key = obj.key ?? undefined;
                     gptServerStore.setMyData({
                         OPENAI_API_BASE_URL: fixedUrl,
                         MJ_SERVER: fixedUrl,
                         SUNO_SERVER: fixedUrl,
                         LUMA_SERVER: fixedUrl,
-                        OPENAI_API_KEY: urlSecretKey,
-                        MJ_API_SECRET: urlSecretKey,
-                        SUNO_KEY: urlSecretKey,
-                        LUMA_KEY: urlSecretKey
+                        OPENAI_API_KEY: key,
+                        MJ_API_SECRET: key,
+                        SUNO_KEY: key,
+                        LUMA_KEY: key
                     });
                     blurClean();
+                    gptServerStore.setMyData(gptServerStore.myData);
                     ms.success("设置服务端成功！");
                 } catch (error) {
                     console.error("Error parsing settings:", error);
@@ -519,8 +520,6 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
                 }
             } else if (isObject(q)) {
                 mlog('setting2', q);
-                const key = q.key ?? urlSecretKey;
-                console.log("Extracted key from q:", key); // 添加日志
                 gptServerStore.setMyData({
                     ...q,
                     OPENAI_API_BASE_URL: fixedUrl,
@@ -529,6 +528,7 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
                     LUMA_SERVER: fixedUrl
                 });
                 blurClean();
+                gptServerStore.setMyData(gptServerStore.myData);
                 ms.success("设置更新成功！");
             }
         } else {
@@ -540,7 +540,6 @@ export const openaiSetting = (q: any, ms: MessageApiInjection) => {
         ms.error("处理URL时出错: " + (error as Error).message);
     }
 };
-
 
 
 
